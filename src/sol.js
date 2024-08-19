@@ -25,41 +25,78 @@ const BabylonScene = () => {
             const mercuryTexture = new BABYLON.Texture("/textures/mercury.jpg", scene, true, false, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, null, (message) => {
                 console.error("Error loading Mercury texture:", message);
             });
-            const marsTexture = new BABYLON.Texture("/textures/mars.jpg", scene);
+            const VenusTexture = new BABYLON.Texture("/textures/venus.png", scene);
             const earthTexture = new BABYLON.Texture("/textures/earth.jpg", scene);
+            const marsTexture = new BABYLON.Texture("/textures/mars.jpg", scene);
+  
+            
+            const jupiterTexture = new BABYLON.Texture("/textures/jupiter.png", scene);
+            const saturnTexture = new BABYLON.Texture("/textures/saturn.jpg", scene);
+            const uranusTexture = new BABYLON.Texture("/textures/uranus.jpg", scene);
+            const neptuneTexture = new BABYLON.Texture("/textures/neptune.jpg", scene);
+
             
 
             const planetsData = [
                 {
                     name: "Mercury",
                     diameter: 2.383,
-                    orbit: 15,
+                    orbit: 50,
                     texture:mercuryTexture,
-                    color: new BABYLON.Color3(0.5, 0.5, 0.5),
+                    
                     speed: 0.02
                 },
                 {
                     name: "Venus",
                     diameter: 3.949,
-                    orbit: 20,
-                    color: new BABYLON.Color3(0.9, 0.7, 0.4),
+                    orbit: 70,
+                    texture:VenusTexture,
+                    
                     speed: 0.015
                 },
                 {
                     name: "Earth",
                     diameter: 6,
-                    orbit: 30,
+                    orbit: 100,
                     texture: earthTexture,
-                    color: new BABYLON.Color3(0.2, 0.4, 0.9),
+                    
                     speed: 0.01
                 },
                 {
                     name: "Mars",
                     diameter: 4.532,
-                    orbit: 40,
+                    orbit: 140,
                     texture: marsTexture, 
                     speed: 0.008
                 },
+                {
+                    name:"Jupiter",
+                    diameter:"10",
+                    orbit:"180",
+                    texture:jupiterTexture,
+                    speed:"0.005"
+                }
+                ,{
+                    name:"Saturn",
+                    diameter:"9",
+                    orbit:"200",
+                    texture:saturnTexture,
+                    speed:"0.004"
+                },
+                {
+                    name:"Uranus",
+                    diameter:"7",
+                    orbit:"230",
+                    texture:uranusTexture,
+                    speed:"0.003"
+                },
+                {
+                    name:"Neptune",
+                    diameter:"8",
+                    orbit:"290",
+                    texture:neptuneTexture,
+                    speed:"0.002"
+                }
             ];
 
             const planets = planetsData.map(data => {
