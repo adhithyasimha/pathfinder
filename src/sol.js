@@ -22,36 +22,31 @@ const BabylonScene = () => {
             const sunMaterial = new BABYLON.StandardMaterial("sunMaterial", scene);
             sunMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
             sun.material = sunMaterial;
+
             const mercuryTexture = new BABYLON.Texture("/textures/mercury.jpg", scene, true, false, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, null, (message) => {
                 console.error("Error loading Mercury texture:", message);
             });
             const VenusTexture = new BABYLON.Texture("/textures/venus.png", scene);
             const earthTexture = new BABYLON.Texture("/textures/earth.jpg", scene);
             const marsTexture = new BABYLON.Texture("/textures/mars.jpg", scene);
-  
-            
             const jupiterTexture = new BABYLON.Texture("/textures/jupiter.png", scene);
             const saturnTexture = new BABYLON.Texture("/textures/saturn.jpg", scene);
             const uranusTexture = new BABYLON.Texture("/textures/uranus.jpg", scene);
             const neptuneTexture = new BABYLON.Texture("/textures/neptune.jpg", scene);
-
-            
 
             const planetsData = [
                 {
                     name: "Mercury",
                     diameter: 2.383,
                     orbit: 50,
-                    texture:mercuryTexture,
-                    
+                    texture: mercuryTexture,
                     speed: 0.02
                 },
                 {
                     name: "Venus",
                     diameter: 3.949,
                     orbit: 70,
-                    texture:VenusTexture,
-                    
+                    texture: VenusTexture,
                     speed: 0.015
                 },
                 {
@@ -59,43 +54,42 @@ const BabylonScene = () => {
                     diameter: 6,
                     orbit: 100,
                     texture: earthTexture,
-                    
                     speed: 0.01
                 },
                 {
                     name: "Mars",
                     diameter: 4.532,
                     orbit: 140,
-                    texture: marsTexture, 
+                    texture: marsTexture,
                     speed: 0.008
                 },
                 {
-                    name:"Jupiter",
-                    diameter:"10",
-                    orbit:"180",
-                    texture:jupiterTexture,
-                    speed:"0.005"
-                }
-                ,{
-                    name:"Saturn",
-                    diameter:"9",
-                    orbit:"200",
-                    texture:saturnTexture,
-                    speed:"0.004"
+                    name: "Jupiter",
+                    diameter: 10,
+                    orbit: 180,
+                    texture: jupiterTexture,
+                    speed: 0.005
                 },
                 {
-                    name:"Uranus",
-                    diameter:"7",
-                    orbit:"230",
-                    texture:uranusTexture,
-                    speed:"0.003"
+                    name: "Saturn",
+                    diameter: 9,
+                    orbit: 200,
+                    texture: saturnTexture,
+                    speed: 0.004
                 },
                 {
-                    name:"Neptune",
-                    diameter:"8",
-                    orbit:"290",
-                    texture:neptuneTexture,
-                    speed:"0.002"
+                    name: "Uranus",
+                    diameter: 7,
+                    orbit: 230,
+                    texture: uranusTexture,
+                    speed: 0.003
+                },
+                {
+                    name: "Neptune",
+                    diameter: 8,
+                    orbit: 290,
+                    texture: neptuneTexture,
+                    speed: 0.002
                 }
             ];
 
@@ -138,12 +132,26 @@ const BabylonScene = () => {
                 return planet;
             });
 
+            // Create the moon
+            const moon = BABYLON.MeshBuilder.CreateSphere("moon", { diameter: 3.5 }, scene);
+            const moonMaterial = new BABYLON.StandardMaterial("moonMaterial", scene);
+            moonMaterial.diffuseTexture = new BABYLON.Texture("/textures/luna/moon.jpg", scene);
+            moon.material = moonMaterial;
+            moon.position.x = 8; // Position the moon relative to the Earth
+
             scene.registerBeforeRender(function() {
                 planets.forEach(function(planet) {
                     planet.rotation.y += 0.005;
                     const angle = performance.now() * 0.001 * planet.speed;
                     planet.position.x = Math.cos(angle) * planet.orbit;
                     planet.position.z = Math.sin(angle) * planet.orbit;
+
+                    
+                    if (planet.name === "Earth") {
+                        const moonAngle = performance.now() * 0.001 * 0.02; 
+                        moon.position.x = planet.position.x + Math.cos(moonAngle) * 8;
+                        moon.position.z = planet.position.z + Math.sin(moonAngle) * 8;
+                    }
                 });
             });
 
