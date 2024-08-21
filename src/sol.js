@@ -18,7 +18,7 @@ const BabylonScene = () => {
 
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
-            const sun = BABYLON.MeshBuilder.CreateSphere("sun", { diameter: 10 }, scene);
+            const sun = BABYLON.MeshBuilder.CreateSphere("sun", { diameter: 30 }, scene);
             const sunMaterial = new BABYLON.StandardMaterial("sunMaterial", scene);
             sunMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
             sun.material = sunMaterial;
