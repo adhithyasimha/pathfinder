@@ -23,16 +23,19 @@ const BabylonScene = () => {
             sunMaterial.emissiveColor = new BABYLON.Color3(1, 1, 0);
             sun.material = sunMaterial;
 
-            const mercuryTexture = new BABYLON.Texture("/textures/mercury.jpg", scene, true, false, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, null, (message) => {
-                console.error("Error loading Mercury texture:", message);
-            });
-            const VenusTexture = new BABYLON.Texture("/textures/venus.png", scene);
-            const earthTexture = new BABYLON.Texture("/textures/earth.jpg", scene);
-            const marsTexture = new BABYLON.Texture("/textures/mars.jpg", scene);
-            const jupiterTexture = new BABYLON.Texture("/textures/jupiter.png", scene);
-            const saturnTexture = new BABYLON.Texture("/textures/saturn.jpg", scene);
-            const uranusTexture = new BABYLON.Texture("/textures/uranus.jpg", scene);
-            const neptuneTexture = new BABYLON.Texture("/textures/neptune.jpg", scene);
+            const mercuryTexture = new BABYLON.Texture("/textures/mercury.jpg", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            const venusTexture = new BABYLON.Texture("/textures/venus.png", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            const earthTexture = new BABYLON.Texture("/textures/earth.jpg", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            earthTexture.uScale = 1; 
+earthTexture.vScale = -1; 
+            const marsTexture = new BABYLON.Texture("/textures/mars.jpg", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            const jupiterTexture = new BABYLON.Texture("/textures/jupiter.png", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            const saturnTexture = new BABYLON.Texture("/textures/saturn.jpg", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            const uranusTexture = new BABYLON.Texture("/textures/uranus.jpg", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            const neptuneTexture = new BABYLON.Texture("/textures/neptune.jpg", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            const moonTexture = new BABYLON.Texture("/textures/moon.png", scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
+            moonTexture.uScale = 1;
+            moonTexture.vScale = -1
 
             const planetsData = [
                 {
@@ -46,7 +49,7 @@ const BabylonScene = () => {
                     name: "Venus",
                     diameter: 3.949,
                     orbit: 70,
-                    texture: VenusTexture,
+                    texture: venusTexture,
                     speed: 0.015
                 },
                 {
@@ -54,7 +57,8 @@ const BabylonScene = () => {
                     diameter: 6,
                     orbit: 100,
                     texture: earthTexture,
-                    speed: 0.01
+                    speed: 0.01,
+                    moonSpeed: 0.02
                 },
                 {
                     name: "Mars",
@@ -94,13 +98,9 @@ const BabylonScene = () => {
             ];
 
             const planets = planetsData.map(data => {
-                const planet = BABYLON.MeshBuilder.CreateSphere(data.name, { diameter: data.diameter }, scene);
+                const planet = BABYLON.MeshBuilder.CreateSphere(data.name, { diameter: data.diameter, segments: 24 }, scene);
                 const material = new BABYLON.StandardMaterial(data.name + "Material", scene);
-                if (data.texture) {
-                    material.diffuseTexture = data.texture;
-                } else {
-                    material.diffuseColor = data.color;
-                }
+                material.diffuseTexture = data.texture;
                 planet.material = material;
                 planet.orbit = data.orbit;
                 planet.position.x = data.orbit;
@@ -129,15 +129,19 @@ const BabylonScene = () => {
                     zoomToPlanet(planet);
                 }));
 
+                // Add moon for Earth
+                if (data.name === "Earth") {
+                    const moon = BABYLON.MeshBuilder.CreateSphere("Moon", { diameter: 1.7, segments: 16 }, scene);
+                    const moonMaterial = new BABYLON.StandardMaterial("MoonMaterial", scene);
+                    moonMaterial.diffuseTexture = moonTexture;
+                    moon.material = moonMaterial;
+                    moon.position.x = planet.position.x + 5;
+                    moon.speed = data.moonSpeed;
+                    planet.moon = moon;
+                }
+
                 return planet;
             });
-
-            // Create the moon
-            const moon = BABYLON.MeshBuilder.CreateSphere("moon", { diameter: 3.5 }, scene);
-            const moonMaterial = new BABYLON.StandardMaterial("moonMaterial", scene);
-            moonMaterial.diffuseTexture = new BABYLON.Texture("/textures/luna/moon.jpg", scene);
-            moon.material = moonMaterial;
-            moon.position.x = 8; // Position the moon relative to the Earth
 
             scene.registerBeforeRender(function() {
                 planets.forEach(function(planet) {
@@ -146,11 +150,12 @@ const BabylonScene = () => {
                     planet.position.x = Math.cos(angle) * planet.orbit;
                     planet.position.z = Math.sin(angle) * planet.orbit;
 
-                    
-                    if (planet.name === "Earth") {
-                        const moonAngle = performance.now() * 0.001 * 0.02; 
-                        moon.position.x = planet.position.x + Math.cos(moonAngle) * 8;
-                        moon.position.z = planet.position.z + Math.sin(moonAngle) * 8;
+                    // Rotate the moon around the Earth
+                    if (planet.name === "Earth" && planet.moon) {
+                        const moonAngle = performance.now() * 0.001 * planet.moon.speed;
+                        planet.moon.position.x = planet.position.x + Math.cos(moonAngle) * 5;
+                        planet.moon.position.z = planet.position.z + Math.sin(moonAngle) * 5;
+                        planet.moon.rotation.y += 0.01;
                     }
                 });
             });
