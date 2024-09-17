@@ -2,9 +2,15 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+const loader = new THREE.TextureLoader();
+const mercury_texture=loader.load('public/textures/mercury.jpg');
+const venus_texture=loader.load('public/textures/venus.jpg');
+const mars_texture=loader.load('public/textures/mars.jpg')
+
+
 const planetsData = [
-    { name: "Mercury", color: 0x8c8c8c, size: 0.383, orbit: 30, speed: 0.02 },
-    { name: "Venus", color: 0xe6e6e6, size: 0.949, orbit: 45, speed: 0.015 },
+    { name: "Mercury", color: 0x8c8c8c,map:mercury_texture,size: 0.383, orbit: 30, speed: 0.02 },
+    { name: "Venus", color: 0xe6e6e6,map:venus_texture, size: 0.949, orbit: 45, speed: 0.015 },
     { name: "Earth", color: 0x6b93d6, size: 0.999, orbit: 60, speed: 0.01 },
     { name: "Mars", color: 0xc1440e, size: 0.532, orbit: 75, speed: 0.008 },
     { name: "Jupiter", color: 0xd8ca9d, size: 1.21, orbit: 100, speed: 0.005 },
@@ -12,6 +18,9 @@ const planetsData = [
     { name: "Uranus", color: 0xd1e7e7, size: 1, orbit: 150, speed: 0.003 },
     { name: "Neptune", color: 0x5b5ddf, size: 1.88, orbit: 175, speed: 0.002 }
 ];
+
+
+
 
 const SolarSystem = () => {
     const mountRef = useRef(null);
