@@ -3,9 +3,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const myplanetColor = 0xf2f2f2;
+const loader = new THREE.TextureLoader();
+const mercury_texture = loader.load('public/textures/mercury.jpg');
 
 const planetsData = [
-    { name: "Mercury", color: myplanetColor, size: 0.383, orbit: 30, speed: 0.02 },
+    { name: "Mercury", color: myplanetColor, map: mercury_texture, size: 0.383, orbit: 30, speed: 0.02 },
     { name: "Venus", color: myplanetColor, size: 0.949, orbit: 45, speed: 0.015 },
     { name: "Earth", color: myplanetColor, size: 0.999, orbit: 60, speed: 0.01 },
     { name: "Mars", color: myplanetColor, size: 0.532, orbit: 75, speed: 0.008 },
@@ -14,7 +16,6 @@ const planetsData = [
     { name: "Uranus", color: myplanetColor, size: 1, orbit: 150, speed: 0.003 },
     { name: "Neptune", color: myplanetColor, size: 1.88, orbit: 175, speed: 0.002 }
 ];
-
 
 const SolarSystem = () => {
     const mountRef = useRef(null);
@@ -28,7 +29,7 @@ const SolarSystem = () => {
         // Scene setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
-        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
 
         renderer.setSize(width, height);
@@ -59,6 +60,19 @@ const SolarSystem = () => {
         sun.position.set(0, 0, 0);
         scene.add(sun);
 
+        // Glowing atmosphere around the sun
+        const atmosphereTexture = loader.load('public/textures/atmosphere.png');
+        const atmosphereMaterial = new THREE.SpriteMaterial({ map: atmosphereTexture, color: 0xffff00, transparent: true, opacity: 0.5 });
+        const atmosphere = new THREE.Sprite(atmosphereMaterial);
+        atmosphere.scale.set(15, 15, 1);
+        sun.add(atmosphere);
+
+        // Sprite for the sun to be visible when zoomed out
+        const spriteMaterial = new THREE.SpriteMaterial({ map: loader.load('public/textures/sun.png'), color: 0xffff00 });
+        const sunSprite = new THREE.Sprite(spriteMaterial);
+        sunSprite.scale.set(10, 10, 1);
+        scene.add(sunSprite);
+
         // Create planets
         const planets = planetsData.map(data => {
             const planetGeometry = new THREE.SphereGeometry(data.size, 32, 32);
@@ -66,7 +80,7 @@ const SolarSystem = () => {
             const planet = new THREE.Mesh(planetGeometry, planetMaterial);
             planet.userData = { ...data, originalGeometry: planetGeometry };
             scene.add(planet);
-
+        
             // Create orbit
             const orbitGeometry = new THREE.RingGeometry(data.orbit, data.orbit + 0.1, 128);
             const orbitMaterial = new THREE.MeshBasicMaterial({ 
@@ -79,43 +93,32 @@ const SolarSystem = () => {
             orbit.rotation.x = Math.PI / 2;
             scene.add(orbit);
 
-            // // create label 
-            // const canvas = document.createElement('canvas');
-            // const context = canvas.getContext('2d');
-            // context.font = 'Bold 20px Arial';
-            // context.fillStyle = 'rgba(255,255,255,0.95)';
-            // context.fillText(data.name, 0, 20);
-            // const texture = new THREE.CanvasTexture(canvas);
-            // const labelMaterial = new THREE.SpriteMaterial({ map: texture });
-            // const label = new THREE.Sprite(labelMaterial);
-            // label.scale.set(10, 5, 1);
-            // label.position.set(0, data.size * 2, 0);
-            // planet.add(label);
-
-            // // add rectangle border 
-            // context.strokeStyle = 'rgba(255,255,255,0.95)';
-            // context.lineWidth = 2;
-            // context.strokeRect(0, 0, context.measureText(data.name).width, 20);
-
-            // const texture2 = new THREE.CanvasTexture(canvas);
-            // const labelMaterial2 = new THREE.SpriteMaterial({ map: texture2 });
-            // const label2 = new THREE.Sprite(labelMaterial2);
-            // label2.scale.set(10, 5, 1);
-            // label2.position.set(0, data.size * 2, 0);
-            // planet.add(label2);
-
-            // // create line 
-            // const points = [];
-            // points.push(new THREE.Vector3(0, 0, 0));
-            // points.push(new THREE.Vector3(0, data.size * 2, 0));
-            // const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-            // const lineMaterial = new THREE.LineBasicMaterial({ color: 0xf2f2f2 });
-            // const line = new THREE.Line(lineGeometry, lineMaterial);
-            // planet.add(line);
-
             return planet;
         });
 
+        // Create starfield
+        const starCount = 10000;
+        const starGeometry = new THREE.BufferGeometry();
+        const starMaterial = new THREE.PointsMaterial({
+            color: 0xFFFFFF,
+            size: 2,
+            sizeAttenuation: false,
+            transparent: true,
+            opacity: 0.3 // Set an initial opacity to make stars visible from the start
+        });
+
+        const starVertices = [];
+        for (let i = 0; i < starCount; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = (Math.random() - 0.5) * 2000;
+            starVertices.push(x, y, z);
+        }
+
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const starField = new THREE.Points(starGeometry, starMaterial);
+        scene.add(starField);
+        
         function zoomToPlanet(planetName) {
             const planet = planets.find(p => p.userData.name === planetName);
             if (planet) {
@@ -195,15 +198,23 @@ const SolarSystem = () => {
                 planet.position.z = Math.sin(angle) * planet.userData.orbit;
             });
 
+            // Update starfield visibility based on camera distance
+            const distanceFromCenter = camera.position.length();
+            const maxDistance = 1000; // Adjust this value to control when stars reach maximum visibility
+            const minOpacity = 0.3; // Minimum opacity for stars (visible from the start)
+            const maxOpacity = 1.0; // Maximum opacity for stars when zoomed out
+            const starOpacity = THREE.MathUtils.lerp(
+                minOpacity,
+                maxOpacity,
+                Math.min(Math.max((distanceFromCenter - 300) / (maxDistance - 300), 0), 1)
+            );
+            starField.material.opacity = starOpacity;
+
             controls.update();
             renderer.render(scene, camera);
         };
 
         animate();
-
-        // Expose zoomToPlanet and resetView functions
-        // window.zoomToPlanet = zoomToPlanet;
-        // window.resetView = resetView;
 
         // Handle resize
         const handleResize = () => {
@@ -218,67 +229,11 @@ const SolarSystem = () => {
         // Clean up on unmount 
         return () => {
             mountRef.current.removeChild(renderer.domElement);
+            window.removeEventListener('resize', handleResize);
         };
     }, []);
 
     return <div ref={mountRef} />;
 };
-//         return () => {
-//             window.removeEventListener('resize', handleResize);
-//             mountRef.current.removeChild(renderer.domElement);
-//             planets.forEach(planet => {
-//                 planet.geometry.dispose();
-//                 planet.material.dispose();
-//             });
-//             if (spotlight) {
-//                 scene.remove(spotlight);
-//             }
-//         };
-//     }, []);
-
-//     return (
-//         <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-//             <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
-//             <div style={{
-//                 position: 'absolute',
-//                 top: 10,
-//                 left: 10,
-//                 background: 'rgba(0,0,0,0.7)',
-//                 color: 'white',
-//                 padding: '10px',
-//                 borderRadius: '5px'
-//             }}>
-//                 <h2>Solar System</h2>
-//                 {selectedPlanet ? (
-//                     <>
-//                         <h3>{selectedPlanet}</h3>
-//                         <button onClick={() => window.resetView()}>Return to System View</button>
-//                     </>
-//                 ) : (
-//                     <ul style={{ listStyle: 'none', padding: 0 }}>
-//                         {planetsData.map(planet => (
-//                             <li key={planet.name} style={{ marginBottom: '5px' }}>
-//                                 <span>{planet.name}</span>
-//                                 <button
-//                                     onClick={() => window.zoomToPlanet(planet.name)}
-//                                     style={{
-//                                         marginLeft: '10px',
-//                                         background: 'transparent',
-//                                         color: 'white',
-//                                         border: '1px solid white',
-//                                         borderRadius: '5px',
-//                                         padding: '5px'
-//                                     }}
-//                                 >
-//                                     Zoom
-//                                 </button>
-//                             </li>
-//                         ))}
-//                     </ul>
-//                 )}
-//             </div>
-//         </div>
-//     );
-// };
 
 export default SolarSystem;
