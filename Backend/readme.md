@@ -1,2 +1,1 @@
-how to calculate planet positi
-jkwehfiwr3hfihfih3rwuifuhwegfhiew
+how to calculate planet position??
