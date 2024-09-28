@@ -99,11 +99,11 @@ const SolarSystem = () => {
             scene.add(planet);
 
             // Create orbit
-            const orbitGeometry = new THREE.TorusGeometry(data.orbit, 0.2, 16, 100);
+            const orbitGeometry = new THREE.TorusGeometry(data.orbit, 0.09, 16, 100);
             const orbitMaterial = new THREE.MeshBasicMaterial({
                 color: data.orbitColor,
                 side: THREE.DoubleSide,
-                opacity: 0.9,
+                opacity: 1.9,
                 transparent: true
             });
             const orbit = new THREE.Mesh(orbitGeometry, orbitMaterial);
